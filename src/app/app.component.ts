@@ -1,10 +1,17 @@
+import { OnboardingPage } from './../pages/onboarding/onboarding';
+import { AddDjPage } from './../pages/add-dj/add-dj';
+import { SigninPage } from './../pages/signin/signin';
+import { AuthProvider } from './../providers/auth/auth';
 import { Component, ViewChild } from '@angular/core';
-import { Nav, Platform } from 'ionic-angular';
+import { Nav, Platform, AlertController } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
-
 import { HomePage } from '../pages/home/home';
-import { ListPage } from '../pages/list/list';
+import { SignupPage } from '../pages/signup/signup';
+import * as firebase from 'firebase';
+import { ProfilePage } from '../pages/profile/profile';
+
+
 
 @Component({
   templateUrl: 'app.html'
@@ -12,33 +19,111 @@ import { ListPage } from '../pages/list/list';
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
 
-  rootPage: any = HomePage;
+  rootPage: any=HomePage;
+   isUser: any;
 
-  pages: Array<{title: string, component: any}>;
+  pages: Array<{title: string, component: any,icon:any}>;
 
-  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen) {
-    this.initializeApp();
-
-    // used for an example of ngFor and navigation
-    this.pages = [
-      { title: 'Home', component: HomePage },
-      { title: 'List', component: ListPage }
-    ];
-
-  }
-
-  initializeApp() {
-    this.platform.ready().then(() => {
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
-      this.statusBar.styleDefault();
-      this.splashScreen.hide();
+  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen,public alertCtrl :AlertController,private authPROV:AuthProvider) {
+    platform.ready().then(() => {
+      statusBar.styleDefault();
+      splashScreen.hide();
     });
-  }
+   
 
-  openPage(page) {
-    // Reset the content nav to have just this page
-    // we wouldn't want the back button to show in this scenario
-    this.nav.setRoot(page.component);
-  }
+
+    const unsubscribe = firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        console.log("firebase user not available",user)
+        this.isUser = false;
+        this.rootPage = HomePage;
+
+       this.pages = [
+          { title: 'home', component: HomePage, icon:'home' },
+          { title: 'Signin', component:SigninPage ,icon:'log-in'},
+          { title: 'Sign-up', component: SignupPage,icon:'person-add'}
+        ];
+        unsubscribe();
+      }
+       else {
+        console.log("firebase user available",user)
+        this.isUser = true;
+        this.rootPage = HomePage;
+       
+        this.pages = [
+          { title: 'Home', component: HomePage, icon:'home' },
+          { title: 'Profile', component:ProfilePage,icon:'person' },
+          { title: 'Add DJ', component:AddDjPage, icon:'add' },
+          { title: 'Sign-out',component:null,icon:'log-out'}
+         
+
+         
+        
+        ];
+        unsubscribe();
+      
+      }
+    });
+
+  
+}
+signoutConfirm() {
+  let alert = this.alertCtrl.create({
+    title: 'Sign Out',
+    message: 'Are you sure you want to signout?',
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel',
+        handler: () => {
+          console.log('Cancel clicked');
+          this.nav.setRoot(HomePage);
+        }
+      },
+      {
+        text: 'Yes',
+        handler: () => {
+          console.log('Clicked signout button');
+          this.authPROV.signOut().then(() => {
+            this.authPROV.signOut();
+          
+            this.nav.setRoot(HomePage);
+            
+            
+          });
+         
+        }
+      }
+    ]
+  });
+  alert.present();
+}
+
+
+openPage(page) {
+  switch (true) {
+
+    case ((page.title == 'Sign-out')): {
+
+
+      
+      console.log('Clicked signout button');
+
+      this.signoutConfirm();
+     
+    }
+        break;
+
+    default: {
+      this.nav.setRoot(page.component);
+    }
+        break;
+}
+
+}
+
+
+
+
+
 }

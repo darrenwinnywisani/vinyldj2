@@ -1,18 +1,49 @@
 <ion-header>
-  <ion-navbar>
-    <button ion-button menuToggle>
-      <ion-icon name="menu"></ion-icon>
-    </button>
-    <ion-title>Home</ion-title>
-  </ion-navbar>
-</ion-header>
-
-<ion-content padding>
-  <h3>Ionic Menu Starter</h3>
-
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will show you the way.
-  </p>
-
-  <button ion-button secondary menuToggle>Toggle Menu</button>
-</ion-content>
+    <ion-navbar>
+        <button ion-button menuToggle *ngIf="!isSearchbarOpened">
+            <ion-icon name="menu"></ion-icon>
+        </button>
+      <ion-title align="center" *ngIf="!isSearchbarOpened"></ion-title>
+      <!-- <ion-searchbar [(ngModel)]="searchDj" (ionInput)="setFilteredDj()" *ngIf="isSearchbarOpened" showCancelButton="true" (ionCancel)="isSearchbarOpened=false"></ion-searchbar> -->
+      <ion-searchbar [(ngModel)]="searchstring" (input)="searchDJ($event)" *ngIf="isSearchbarOpened" palceholder="Search" showCancelButton="true" (ionCancel)="isSearchbarOpened=false"></ion-searchbar>
+      <ion-buttons end>
+        <button ion-button icon-only *ngIf="!isSearchbarOpened" (click)="isSearchbarOpened=true">
+          <ion-icon name="search"></ion-icon>
+        </button>
+      </ion-buttons>
+      </ion-navbar>
+  </ion-header>
+  <ion-content padding>
+      <div align="center" class="search" *ngIf="isSearchbarOpened;">
+          <ion-list *ngFor="let dj of filteredusers; let i=index">
+            <ion-item (click)="gotoViewDetails(i)">
+              <div *ngIf="searchstring!=='';else message">
+                <ion-row>
+                  <ion-col col-4>
+                    <img class="img" src="{{dj.IMAGE}}"/>
+                    </ion-col>
+                    <ion-col col-6>
+                      <h2>{{dj.stageName}}</h2>
+                    </ion-col>
+                </ion-row>
+              </div>
+              <ng-template #message>
+                <div *ngIf="searchstring!=='dj.stageName'&& searchstring!==''">
+                    <p>Search Results not found</p>
+                </div>
+              </ng-template>
+            </ion-item>
+          </ion-list>
+         
+      </div>   
+      <div *ngIf="!isSearchbarOpened">
+        <ion-row>
+            <ion-col col-6 *ngFor="let dj of filteredusers; let i=index">
+                <ion-card align="center" (click)="gotoViewDetails(i)">
+                    <img class="imgs" src="{{dj.stageName}}" />
+                    <h2>{{dj.stageName}}</h2>
+                </ion-card>
+            </ion-col>
+        </ion-row>
+      </div>
+  </ion-content>
